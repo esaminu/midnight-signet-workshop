@@ -37,7 +37,7 @@ function snapshot() {
     STEPS.map((step) => {
       const done = s.finishedAt?.[step];
       const status = done ? "done" : live.running === step ? "running" : s.error && lastStarted(s) === step ? "error" : "todo";
-      return [step, { status, at: done ?? null, message: live.message[step] ?? null }];
+      return [step, { status, at: done ?? null, message: live.message[step] ?? s.messages?.[step] ?? null }];
     }),
   );
   return {
@@ -78,6 +78,7 @@ function broadcastState(): void {
 const report: Report = (step, message) => {
   live.running = step;
   live.message[step] = message;
+  saveState({ messages: { ...loadState().messages, [step]: message } });
   console.log(`[${step}] ${message}`);
   broadcastState();
 };

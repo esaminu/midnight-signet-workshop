@@ -65,6 +65,8 @@ button.big { font-size: 17px; padding: 16px 30px; }
 .step .who { font: 600 12px/1 var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--ink-soft); }
 .step .msg { margin-top: 6px; font-size: 14px; line-height: 1.4; word-break: break-word; }
 .step .msg a { color: inherit; }
+.step .links { margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+.step .links a { font: 600 12px/1 var(--font-mono); letter-spacing: .6px; text-transform: uppercase; text-decoration: none; border: 2px solid currentColor; border-radius: 999px; padding: 7px 12px; color: inherit; }
 .step.running .msg::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--live); margin-right: 8px; animation: pulse 1.6s infinite; }
 .step.error .msg { color: var(--bad); }
 .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
@@ -145,8 +147,7 @@ a { color: inherit; }
 (() => {
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const label = (u) => u.includes("sig-net.github.io/explorer") ? "request in the Sig.Network explorer" : u.includes("etherscan.io/tx/") ? "sweep on Etherscan" : u;
-  const linkify = (s) => esc(s).replace(/(https?:\/\/[^\s]+)/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${label(u)}</a>`);
+  const linkify = (s) => esc(s).replace(/(https?:\/\/[^\s]+)/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
   const post = (path) => fetch(path, { method: "POST" }).then(async (r) => { if (!r.ok) alert((await r.json()).error || r.statusText); });
 
   let state = null;
@@ -175,6 +176,12 @@ a { color: inherit; }
       if (st.status === "error" && s.error) msg = s.error;
       if (st.status === "done" && st.at) msg = (msg ? msg + " · " : "") + new Date(st.at).toLocaleTimeString();
       li.querySelector(".msg").innerHTML = linkify(msg);
+      const explorer = s.requestId ? `<a href="https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=${esc(s.requestId)}" target="_blank" rel="noopener">Request in the Sig.Network explorer ↗</a>` : "";
+      const sweep = s.sepoliaTxHash ? `<a href="https://sepolia.etherscan.io/tx/${esc(s.sepoliaTxHash)}" target="_blank" rel="noopener">Sweep on Etherscan ↗</a>` : "";
+      const rowLinks = { ask: explorer, sign: "", broadcast: sweep, attest: s.attestation ? "" : explorer, settle: "" }[li.dataset.step];
+      let box = li.querySelector(".links");
+      if (!box) { box = document.createElement("div"); box.className = "links"; li.querySelector(".msg").after(box); }
+      box.innerHTML = rowLinks;
     }
     const canComplete = !!s.attestation && !settled && !s.running;
     document.querySelector('.step[data-step="settle"]').classList.toggle("ready", canComplete);

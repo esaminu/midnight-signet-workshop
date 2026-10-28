@@ -309,25 +309,25 @@ the pool. Watch the steps:
   a minute.
 - **Sign**: the MPC's signature appears, usually within 30 seconds. The app checks that it
   recovers to your deposit address.
-- **Broadcast**: the sweep is sent to Sepolia. Open the Etherscan link: your USDC moves from
-  your deposit address into the pool's account.
+- **Broadcast**: the sweep is sent to Sepolia. Open the Etherscan button on that row: your USDC
+  moves from your deposit address into the pool's account.
 
 Expected log:
 
 ```
 [ask] asking the MPC to sweep 1.0 USDC from 0x… (proving, about a minute)
-[ask] request 7f3a… in Midnight tx 00…. Follow it: https://sig-net.github.io/explorer/…
+[ask] request 7f3a… in Midnight tx 00…
 [sign] waiting for the MPC's signature (usually about 30 s)
 [sign] signature found; it recovers to your deposit address 0x…
-[broadcast] mined: https://sepolia.etherscan.io/tx/0x…
-[attest] waiting for the MPC's attestation: it waits for Sepolia finality (about 18 minutes). Watch it: https://sig-net.github.io/explorer/…
+[broadcast] mined
+[attest] waiting for the MPC's attestation: it waits for Sepolia finality (about 18 minutes)
 ```
 
 No browser? `yarn deposit` does the same from the terminal, and `yarn settle` later. Both are
 safe to rerun; progress is in `state.json`.
 
-The **Ask** step links your request in the Sig.Network explorer, which then follows it through
-Sign and Attest.
+The **Ask** and **Attest** rows carry a button to your request in the Sig.Network explorer, which
+follows it through Sign and Attest. The **Broadcast** row links the sweep on Etherscan.
 
 ---
 

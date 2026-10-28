@@ -22,6 +22,7 @@ export interface State {
   attestation?: { outputKind: string; blockHeight: string; succeeded: boolean };
   completeTxId?: string;
   finishedAt?: Partial<Record<Step, string>>;
+  messages?: Partial<Record<Step, string>>;
   error?: string;
 }
 

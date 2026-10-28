@@ -38,7 +38,7 @@ export async function runDeposit(w: Workshop, contractAddress: string, amount: b
   requirePart3();
   let state = loadState();
   if (state.sepoliaTxHash) {
-    report("broadcast", `already broadcast: https://sepolia.etherscan.io/tx/${state.sepoliaTxHash}`);
+    report("broadcast", "already broadcast");
     return state;
   }
 
@@ -56,9 +56,9 @@ export async function runDeposit(w: Workshop, contractAddress: string, amount: b
       requestId: r.requestId, fromBlock: r.fromBlock, evmNonce: String(r.evmNonce), amount: String(r.amount), requestTxId: r.txId,
     });
     markDone("ask");
-    report("ask", `request ${r.requestId} in Midnight tx ${r.txId}. Follow it: https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=${r.requestId}`);
+    report("ask", `request ${r.requestId} in Midnight tx ${r.txId}`);
   } else {
-    report("ask", `request ${state.requestId} already made. Follow it: https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=${state.requestId}`);
+    report("ask", `request ${state.requestId} already made`);
   }
 
   const requestId = state.requestId as RequestIdHex;
@@ -80,13 +80,13 @@ export async function runDeposit(w: Workshop, contractAddress: string, amount: b
     const hash = await broadcast(w, signed);
     state = saveState({ sepoliaTxHash: hash });
     markDone("broadcast");
-    report("broadcast", `mined: https://sepolia.etherscan.io/tx/${hash}`);
+    report("broadcast", "mined");
   } catch (e) {
     const receipt = (e as { receipt?: { hash?: string; status?: number } }).receipt;
     if (!receipt?.hash || receipt.status !== 0) throw e;
     state = saveState({ sepoliaTxHash: receipt.hash, sweepReverted: true });
     markDone("broadcast");
-    report("broadcast", `mined but REVERTED: https://sepolia.etherscan.io/tx/${receipt.hash} (the MPC will attest it as failed)`);
+    report("broadcast", "mined but REVERTED (the MPC will attest it as failed)");
   }
   return state;
 }
@@ -99,7 +99,7 @@ export async function runAttest(w: Workshop, contractAddress: string, report: Re
     report("attest", `already attested ${state.attestation.outputKind} at Sepolia block ${state.attestation.blockHeight}`);
     return state;
   }
-  report("attest", `waiting for the MPC's attestation: it waits for Sepolia finality (about 18 minutes). Watch it: https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=${state.requestId}`);
+  report("attest", "waiting for the MPC's attestation: it waits for Sepolia finality (about 18 minutes)");
   const attestation = await waitForAttestation(w, contractAddress, requestId, state.fromBlock!);
   const kind = OutputKind[attestation.event.outputKind];
   state = saveState({
