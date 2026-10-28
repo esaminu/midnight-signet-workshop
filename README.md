@@ -231,16 +231,24 @@ Pool account:     0x…  (path "vault")
 Deposit address:  0x…  (path: your commitment)
                   https://sepolia.etherscan.io/address/0x…
 
-Fund your deposit address from MetaMask now, while you write part 3:
-  - the Sepolia USDC you want to deposit (any amount, e.g. 1 USDC)
-  - about 0.001 Sepolia ETH, so the sweep can pay its own gas
+Next: yarn dev
 ```
 
-**Now fund your deposit address from MetaMask:** send it 1 Sepolia USDC and 0.001 Sepolia
-ETH. Two sends. This is not the deposit yet: the USDC only sits on your deposit address until
-step 4, when your contract sweeps it into the pool. Do the sends now, then write part 3 while
-they confirm. The ETH pays the sweep's gas: the deposit account is the sender, and nobody else
-can pay for it.
+### Start the app and fund your deposit address
+
+```sh
+yarn dev
+```
+
+Open http://localhost:4173. The page shows your deposit address as a QR code, with a copy
+button, and its USDC and ETH balances. **From MetaMask, send it 1 Sepolia USDC and 0.001
+Sepolia ETH.** Two sends; scan the QR code with mobile MetaMask or paste the address. This is
+not the deposit yet: the USDC only sits on your deposit address until step 4, when your
+contract sweeps it into the pool. The ETH pays the sweep's gas: the deposit account is the
+sender, and nobody else can pay for it.
+
+Leave the app running and write part 3 while the sends confirm. The page shows the balances
+arriving, and it reloads on its own when you save a file.
 
 > **Stuck?** `yarn finish 2` puts the finished file in place (yours goes to `.finish-backup/`).
 > Then carry on from the next command.
@@ -290,16 +298,12 @@ MPC signature: found after 0s
 
 ---
 
-## 4. Run it
+## 4. Deposit
 
-```sh
-yarn dev
-```
-
-Open http://localhost:4173. The page shows your deposit address, its USDC and ETH balance,
-and **ready to deposit** once both have arrived. Now the deposit itself: click **Deposit**, and
-your contract asks the MPC to sweep the USDC from your deposit address into the pool. Watch
-the steps:
+Back in the app at http://localhost:4173 (if you stopped it, `yarn dev` again). It says
+**ready to deposit** once the USDC and the ETH have arrived. Now the deposit itself: click
+**Deposit**, and your contract asks the MPC to sweep the USDC from your deposit address into
+the pool. Watch the steps:
 
 - **Ask**: one Midnight transaction with two proofs (yours and the Signet contract's), about
   a minute.

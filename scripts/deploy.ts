@@ -33,9 +33,6 @@ Pool account:     ${state.vaultEvmAddress}  (path "vault")
 Deposit address:  ${state.depositAddress}  (path: your commitment)
                   https://sepolia.etherscan.io/address/${state.depositAddress}
 
-Fund your deposit address from MetaMask now, while you write part 3:
-  - the Sepolia USDC you want to deposit (any amount, e.g. 1 USDC)
-  - about 0.001 Sepolia ETH, so the sweep can pay its own gas
-Then: yarn dev
+Next: yarn dev
 `);
 process.exit(0);

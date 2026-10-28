@@ -15,7 +15,7 @@
     "test": "sh scripts/test.sh",
     "typecheck": "OUT=contract/managed-test sh scripts/compile.sh --skip-zk && tsc -p tsconfig.json",
     "deploy": "tsx --env-file-if-exists=.env scripts/deploy.ts",
-    "dev": "tsx --env-file-if-exists=.env scripts/dev.ts",
+    "dev": "tsx watch --clear-screen=false --env-file-if-exists=.env scripts/dev.ts",
     "deposit": "tsx --env-file-if-exists=.env scripts/deposit.ts",
     "settle": "tsx --env-file-if-exists=.env scripts/settle.ts",
     "finish": "tsx scripts/finish.ts"
