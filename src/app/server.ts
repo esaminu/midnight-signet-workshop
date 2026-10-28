@@ -66,7 +66,6 @@ function snapshot() {
   };
 }
 
-/** The step a failed run was on: the first step not finished. */
 function lastStarted(s: State): Step | undefined {
   return STEPS.find((step) => !s.finishedAt?.[step]);
 }

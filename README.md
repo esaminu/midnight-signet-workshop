@@ -316,18 +316,18 @@ Expected log:
 
 ```
 [ask] asking the MPC to sweep 1.0 USDC from 0x… (proving, about a minute)
-[ask] request 7f3a… in Midnight tx 00…
+[ask] request 7f3a… in Midnight tx 00…. Follow it: https://sig-net.github.io/explorer/…
 [sign] waiting for the MPC's signature (usually about 30 s)
 [sign] signature found; it recovers to your deposit address 0x…
 [broadcast] mined: https://sepolia.etherscan.io/tx/0x…
-[attest] waiting for the MPC's attestation: it waits for Sepolia finality (about 18 minutes)
+[attest] waiting for the MPC's attestation: it waits for Sepolia finality (about 18 minutes). Watch it: https://sig-net.github.io/explorer/…
 ```
 
 No browser? `yarn deposit` does the same from the terminal, and `yarn settle` later. Both are
 safe to rerun; progress is in `state.json`.
 
-Your request in the Sig.Network explorer (the app links it):
-`https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=<your request id>`
+The **Ask** step links your request in the Sig.Network explorer, which then follows it through
+Sign and Attest.
 
 ---
 

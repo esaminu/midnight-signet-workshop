@@ -46,39 +46,27 @@ export type CircuitArgs<K extends CircuitId> = Tail<Parameters<Circuits[K]>>;
 export type CircuitResult<K extends CircuitId> = Awaited<ReturnType<Circuits[K]>>["result"];
 
 export interface CallOutcome<K extends CircuitId> {
-  /** What the circuit returned. */
   readonly result: CircuitResult<K>;
   readonly txId: string;
   readonly blockHeight: number;
 }
 
-/** The part of an ethers provider the workshop uses on Sepolia. */
 export type SepoliaClient = Pick<
   JsonRpcProvider,
   "getTransactionCount" | "getFeeData" | "getBalance" | "broadcastTransaction" | "call" | "getTransactionReceipt"
 >;
 
 export interface Workshop {
-  /** Midnight stagenet indexer GraphQL endpoint (events + state). */
   readonly indexerUrl: string;
-  /** Reads contract state from the indexer. */
   readonly publicDataProvider: SignetPublicStateSource;
   readonly sepolia: SepoliaClient;
-  /** Your identity secret's commitment, as hex. The MPC derivation path of your deposit account. */
   readonly commitmentHex: string;
-  /** Your deposit address for a contract. */
   depositAddress(contractAddress: string): string;
-  /** Prove and submit one of YOUR circuits on the deployed contract. */
   call<K extends CircuitId>(circuit: K, ...args: CircuitArgs<K>): Promise<CallOutcome<K>>;
-  /** Current Midnight block height. */
   midnightTip(): Promise<number>;
-  /** Deploy a fresh copy of contract/workshop.compact. Returns its address. */
   deploy(): Promise<{ contractAddress: string; txId: string }>;
-  /** Open (and sync) the wallet now instead of at the first call. */
   openWallet(): Promise<void>;
-  /** Your private balance of the pool's token (USDC base units). */
   shieldedBalance(contractAddress: string): Promise<bigint>;
-  /** Sepolia balances of an address: ETH (wei) and USDC (base units). */
   sepoliaBalances(address: string): Promise<{ eth: bigint; usdc: bigint }>;
 }
 
@@ -87,11 +75,6 @@ export interface OpenedWorkshop {
   close(): Promise<void>;
 }
 
-/**
- * Build a Workshop. The wallet opens (and syncs) only when a step needs it:
- * `call`, `deploy`, `shieldedBalance` or `openWallet`. Waiting for the MPC
- * needs no wallet. Call `close()` when done.
- */
 export function openWorkshop(contractAddress?: string): OpenedWorkshop {
   const config = loadConfig();
   const midnight = config.midnight;
@@ -196,7 +179,6 @@ export function openWorkshop(contractAddress?: string): OpenedWorkshop {
   };
 }
 
-/** Build a Workshop, run `fn`, then close the wallet. */
 export async function withWorkshop<T>(
   contractAddress: string | undefined,
   fn: (w: Workshop) => Promise<T>,

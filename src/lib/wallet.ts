@@ -72,7 +72,6 @@ async function synced(facade: WalletFacade): Promise<FacadeState> {
   }
 }
 
-/** Start (or resume) the wallet, sync it, run `fn`, save the sync, stop. */
 export async function withSyncedWallet<T>(
   seed: string,
   keys: AccountKeys,

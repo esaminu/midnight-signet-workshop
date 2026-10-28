@@ -5,14 +5,12 @@ import type { Workshop } from "../lib/workshop.ts";
 
 export interface Requested {
   requestId: RequestIdHex;
-  /** Midnight block height just before the request: where to look for the MPC's answers. */
   fromBlock: number;
   evmNonce: bigint;
   amount: bigint;
   txId: string;
 }
 
-/** The max fee the sweep may pay per gas: about 2x the current fee, plus the circuit's 1 gwei tip. */
 export async function sweepMaxFeePerGas(w: Workshop): Promise<bigint> {
   return 2n * ((await w.sepolia.getFeeData()).maxFeePerGas ?? 0n) + SWEEP_TIP;
 }

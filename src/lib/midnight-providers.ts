@@ -15,7 +15,6 @@ import type { AccountKeys, WalletFacade } from "@sig-net/midnight-contract-deplo
 const BALANCE_TTL_MS = 30 * 60 * 1000;
 const PROOF_TIMEOUT_MS = 15 * 60 * 1000;
 
-/** midnight-js's balancer + submitter, backed by a started wallet facade. */
 export function createWalletAndMidnightProvider(
   facade: WalletFacade,
   keys: AccountKeys,
@@ -36,11 +35,6 @@ export function createWalletAndMidnightProvider(
   };
 }
 
-/**
- * Proof-server proof provider that finds proving keys across several
- * compiled contracts (the caller plus every callee). Adds the `lookupKey`
- * method the ledger-v9 rc.3 WASM requires.
- */
 export function createCrossContractProofServerProvider(
   proofServerUrl: string,
   zkConfigProviders: readonly ZKConfigProvider<string>[],

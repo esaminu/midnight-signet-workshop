@@ -77,20 +77,17 @@ export function field<T>(ctx: Ctx, name: string): T {
   return value as T;
 }
 
-/** The private tokens this call minted: domain separator (hex) -> amount. */
 export function mints(ctx: Ctx): Map<string, bigint> {
   return (ctx.callContext.currentQueryContext as unknown as { effects: { shieldedMints: Map<string, bigint> } }).effects.shieldedMints;
 }
 export const POOL_TOKEN = bytesToHex(pureCircuits.vaultTokenDomainSeparator(USDC));
 
-/** Serves the Signet contract's state to sendDeposit's cross-contract call. */
 async function signetStateProvider() {
   const signet = new SignetSigner.Contract({});
   const { currentContractState } = await signet.initialState(createConstructorContext(undefined, CPK));
   return { getContractState: () => Promise.resolve(currentContractState) };
 }
 
-/** Deploy with the constructor (deployer = USER_SECRET's commitment), not initialised yet. */
 export async function deploy(): Promise<Ctx> {
   const contract = new generated.Contract(witnesses);
   const privateState: PrivateState = { secretKey: USER_SECRET };
@@ -111,7 +108,6 @@ export async function deploy(): Promise<Ctx> {
   );
 }
 
-/** The same ledger state, called by another identity. */
 export async function asUser(ctx: Ctx, secretKey: Uint8Array): Promise<Ctx> {
   return createCircuitContext(
     ctx.callContext.circuitId,
@@ -131,7 +127,6 @@ export async function deployInitialised(): Promise<Ctx> {
   return (await circuit("initialise")(await deploy(), VAULT_EVM, MPC_RESPONSE_KEY)).context;
 }
 
-/** Deploy + initialise + sendDeposit. Returns the request id too. */
 export async function requested(nonce = EVM_NONCE, amount = AMOUNT): Promise<{ ctx: Ctx; requestId: Uint8Array }> {
   const r = await circuit("sendDeposit")(await deployInitialised(), amount, nonce, MAX_FEE);
   const requestId = r.result as Uint8Array;
@@ -141,7 +136,6 @@ export async function requested(nonce = EVM_NONCE, amount = AMOUNT): Promise<{ c
   return { ctx: r.context, requestId };
 }
 
-/** Sign an attestation the way the MPC does, in the circuit's input form. */
 export function attest(
   requestId: Uint8Array,
   outputKind: OutputKind,

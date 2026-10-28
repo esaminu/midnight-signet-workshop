@@ -7,7 +7,6 @@ import { reader } from "./poll-signature-response.ts";
 
 export interface Attestation {
   event: RespondBidirectionalEvent;
-  /** The bytes the MPC attested: 0x01 (transfer returned true), 0x00 (false) or empty (failed/unviable). */
   serializedOutput: Uint8Array;
   succeeded: boolean;
 }

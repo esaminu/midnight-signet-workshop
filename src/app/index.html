@@ -145,7 +145,8 @@ a { color: inherit; }
 (() => {
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const linkify = (s) => esc(s).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  const label = (u) => u.includes("sig-net.github.io/explorer") ? "request in the Sig.Network explorer" : u.includes("etherscan.io/tx/") ? "sweep on Etherscan" : u;
+  const linkify = (s) => esc(s).replace(/(https?:\/\/[^\s]+)/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${label(u)}</a>`);
   const post = (path) => fetch(path, { method: "POST" }).then(async (r) => { if (!r.ok) alert((await r.json()).error || r.statusText); });
 
   let state = null;
@@ -181,11 +182,7 @@ a { color: inherit; }
     $("complete-btn").textContent = settled ? "Completed" : "Complete";
     $("private").textContent = s.privateBalance ?? (s.walletReady ? "0" : "—");
     $("private-note").textContent = settled ? "Minted by completeDeposit, after your circuit verified the MPC's attestation." : "Appears after Settle. Only your wallet can see it.";
-    const links = [];
-    if (s.requestId) links.push(`<a href="https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=${esc(s.requestId)}" target="_blank" rel="noopener">request in the Sig.Network explorer</a>`);
-    if (s.sepoliaTxHash) links.push(`<a href="https://sepolia.etherscan.io/tx/${esc(s.sepoliaTxHash)}" target="_blank" rel="noopener">sweep on Etherscan</a>`);
-    if (s.vaultEvmAddress) links.push(`<a href="https://sepolia.etherscan.io/address/${esc(s.vaultEvmAddress)}#tokentxns" target="_blank" rel="noopener">pool account on Etherscan</a>`);
-    $("links").innerHTML = links.join(" · ");
+    $("links").innerHTML = s.vaultEvmAddress ? `<a href="https://sepolia.etherscan.io/address/${esc(s.vaultEvmAddress)}#tokentxns" target="_blank" rel="noopener">pool account on Etherscan</a>` : "";
   }
 
   $("copy").onclick = () => { if (state && state.depositAddress) navigator.clipboard.writeText(state.depositAddress).then(() => { $("copy").textContent = "Copied"; setTimeout(() => ($("copy").textContent = "Copy"), 1200); }); };

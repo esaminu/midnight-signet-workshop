@@ -6,5 +6,4 @@ export function todo(part: number, what: string): never {
   );
 }
 
-/** True while a function is still the placeholder. */
 export const isTodo = (fn: (...args: never[]) => unknown): boolean => /\btodo\(/.test(fn.toString());

@@ -13,20 +13,15 @@ export interface State {
   vaultEvmAddress?: string;
   requestId?: string;
   requestTxId?: string;
-  /** Midnight block height taken just before the request: where to look for answers. */
   fromBlock?: number;
   evmNonce?: string;
-  /** USDC base units the sweep moves. */
   amount?: string;
   signatureVerified?: boolean;
   sepoliaTxHash?: string;
-  /** The sweep mined but reverted: the MPC will attest it as failed. */
   sweepReverted?: boolean;
   attestation?: { outputKind: string; blockHeight: string; succeeded: boolean };
   completeTxId?: string;
-  /** When each step finished (ISO), for the app's progress list. */
   finishedAt?: Partial<Record<Step, string>>;
-  /** The last error of the step in progress, if any. */
   error?: string;
 }
 
@@ -45,7 +40,6 @@ export function markDone(step: Step): State {
   return saveState({ finishedAt: { ...s.finishedAt, [step]: new Date().toISOString() }, error: undefined });
 }
 
-/** Fail with a hint when an earlier step has not run yet. */
 export function need<K extends keyof State>(state: State, key: K, step: string): NonNullable<State[K]> {
   const value = state[key];
   if (value === undefined || value === null) {

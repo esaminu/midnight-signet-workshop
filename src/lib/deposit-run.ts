@@ -14,7 +14,6 @@ import type { Workshop } from "./workshop.ts";
 
 export type Report = (step: Step, message: string) => void;
 
-/** What the deposit address needs before a sweep can pay for itself. */
 export async function fundingCheck(w: Workshop, contractAddress: string) {
   const address = w.depositAddress(contractAddress);
   const [{ eth, usdc }, maxFee] = await Promise.all([w.sepoliaBalances(address), sweepMaxFeePerGas(w)]);
@@ -29,17 +28,12 @@ export async function fundingCheck(w: Workshop, contractAddress: string) {
   };
 }
 
-/** Throws with the TODO message if a part 3 function is still the placeholder. */
 export function requirePart3(): void {
   for (const fn of [waitForSignature, broadcast]) {
     if (isTodo(fn)) todo(3, fn.name);
   }
 }
 
-/**
- * Ask -> Sign -> Broadcast. `amount` defaults to all the USDC on the deposit
- * address. Returns the state; `sepoliaTxHash` is set when the sweep is mined.
- */
 export async function runDeposit(w: Workshop, contractAddress: string, amount: bigint | undefined, report: Report): Promise<State> {
   requirePart3();
   let state = loadState();
@@ -62,9 +56,9 @@ export async function runDeposit(w: Workshop, contractAddress: string, amount: b
       requestId: r.requestId, fromBlock: r.fromBlock, evmNonce: String(r.evmNonce), amount: String(r.amount), requestTxId: r.txId,
     });
     markDone("ask");
-    report("ask", `request ${r.requestId} in Midnight tx ${r.txId}`);
+    report("ask", `request ${r.requestId} in Midnight tx ${r.txId}. Follow it: https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=${r.requestId}`);
   } else {
-    report("ask", `request ${state.requestId} already made`);
+    report("ask", `request ${state.requestId} already made. Follow it: https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=${state.requestId}`);
   }
 
   const requestId = state.requestId as RequestIdHex;
@@ -97,7 +91,6 @@ export async function runDeposit(w: Workshop, contractAddress: string, amount: b
   return state;
 }
 
-/** Attest: wait for the MPC's verdict on the broadcast sweep. Returns the state with `attestation` set. */
 export async function runAttest(w: Workshop, contractAddress: string, report: Report): Promise<State> {
   let state = loadState();
   const requestId = state.requestId as RequestIdHex | undefined;
@@ -106,7 +99,7 @@ export async function runAttest(w: Workshop, contractAddress: string, report: Re
     report("attest", `already attested ${state.attestation.outputKind} at Sepolia block ${state.attestation.blockHeight}`);
     return state;
   }
-  report("attest", "waiting for the MPC's attestation: it waits for Sepolia finality (about 18 minutes)");
+  report("attest", `waiting for the MPC's attestation: it waits for Sepolia finality (about 18 minutes). Watch it: https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=${state.requestId}`);
   const attestation = await waitForAttestation(w, contractAddress, requestId, state.fromBlock!);
   const kind = OutputKind[attestation.event.outputKind];
   state = saveState({
@@ -117,7 +110,6 @@ export async function runAttest(w: Workshop, contractAddress: string, report: Re
   return state;
 }
 
-/** Settle: completeDeposit with the attestation found by runAttest. Returns the state with `completeTxId` set. */
 export async function runComplete(w: Workshop, contractAddress: string, report: Report): Promise<State> {
   let state = loadState();
   const requestId = state.requestId as RequestIdHex | undefined;
@@ -135,7 +127,6 @@ export async function runComplete(w: Workshop, contractAddress: string, report: 
   return state;
 }
 
-/** Attest -> Settle, for the terminal fallback (yarn settle). */
 export async function runSettle(w: Workshop, contractAddress: string, report: Report): Promise<State> {
   await runAttest(w, contractAddress, report);
   return runComplete(w, contractAddress, report);
