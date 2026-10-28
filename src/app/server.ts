@@ -37,7 +37,7 @@ function snapshot() {
     STEPS.map((step) => {
       const done = s.finishedAt?.[step];
       const status = done ? "done" : live.running === step ? "running" : s.error && lastStarted(s) === step ? "error" : "todo";
-      return [step, { status, at: done ?? null, message: live.message[step] ?? s.messages?.[step] ?? null }];
+      return [step, { status, at: done ?? null, message: live.message[step] ?? s.messages?.[step] ?? (done ? doneMessage(step, s) : null) }];
     }),
   );
   return {
@@ -64,6 +64,16 @@ function snapshot() {
     walletReady: live.walletReady,
     walletError: live.walletError,
   };
+}
+
+function doneMessage(step: Step, s: State): string | null {
+  switch (step) {
+    case "ask": return s.requestId ? `request ${s.requestId} in Midnight tx ${s.requestTxId ?? "?"}` : null;
+    case "sign": return s.depositAddress ? `signature found; it recovers to your deposit address ${s.depositAddress}` : null;
+    case "broadcast": return s.sepoliaTxHash ? (s.sweepReverted ? "mined but REVERTED (the MPC will attest it as failed)" : "mined") : null;
+    case "attest": return s.attestation ? `attested ${s.attestation.outputKind}${s.attestation.succeeded ? ", transfer returned true" : ""} at Sepolia block ${s.attestation.blockHeight}` : null;
+    case "settle": return s.completeTxId ? `settled in Midnight tx ${s.completeTxId}` : null;
+  }
 }
 
 function lastStarted(s: State): Step | undefined {
