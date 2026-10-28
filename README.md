@@ -236,9 +236,11 @@ Fund your deposit address from MetaMask now, while you write part 3:
   - about 0.001 Sepolia ETH, so the sweep can pay its own gas
 ```
 
-**Now, from MetaMask, send to your deposit address:** 1 Sepolia USDC and 0.001 Sepolia ETH.
-Two sends. Do it now, then write part 3 while they confirm. The ETH pays the sweep's gas: the
-deposit account is the sender, and nobody else can pay for it.
+**Now fund your deposit address from MetaMask:** send it 1 Sepolia USDC and 0.001 Sepolia
+ETH. Two sends. This is not the deposit yet: the USDC only sits on your deposit address until
+step 4, when your contract sweeps it into the pool. Do the sends now, then write part 3 while
+they confirm. The ETH pays the sweep's gas: the deposit account is the sender, and nobody else
+can pay for it.
 
 > **Stuck?** `yarn finish 2` puts the finished file in place (yours goes to `.finish-backup/`).
 > Then carry on from the next command.
@@ -295,7 +297,9 @@ yarn dev
 ```
 
 Open http://localhost:4173. The page shows your deposit address, its USDC and ETH balance,
-and **ready to deposit** once both have arrived. Click **Deposit** and watch the steps:
+and **ready to deposit** once both have arrived. Now the deposit itself: click **Deposit**, and
+your contract asks the MPC to sweep the USDC from your deposit address into the pool. Watch
+the steps:
 
 - **Ask**: one Midnight transaction with two proofs (yours and the Signet contract's), about
   a minute.
