@@ -52,7 +52,7 @@ button.big { font-size: 17px; padding: 16px 30px; }
 /* The five steps, lane-coloured like the deck: Midnight dark, MPC outlined, Ethereum polar. */
 .steps { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 10px; }
 .step { display: grid; grid-template-columns: 44px 36px 1fr; gap: 14px; align-items: start; border: 2px solid var(--rule); border-radius: 12px; padding: 14px 16px; opacity: .55; transition: opacity .3s; }
-.step.running, .step.done, .step.error { opacity: 1; }
+.step.running, .step.done, .step.error, .step.ready { opacity: 1; }
 .step .ico { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; border: 2px solid transparent; }
 .step .ico svg { width: 28px; height: 28px; --sw: 3; color: inherit; }
 .step.m .ico { background: var(--midnight-bg); color: var(--midnight-ink); }
@@ -170,13 +170,14 @@ a { color: inherit; }
       : s.running ? "" : s.error ? s.error : !broadcast && s.funding && !s.funding.ready ? "fund the deposit address first" : "";
     for (const li of document.querySelectorAll(".step")) {
       const st = s.steps[li.dataset.step];
-      li.className = li.className.replace(/\b(todo|running|done|error)\b/g, "").trim() + " " + st.status;
+      li.className = li.className.replace(/\b(todo|running|done|error|ready)\b/g, "").trim() + " " + st.status;
       let msg = st.message || "";
       if (st.status === "error" && s.error) msg = s.error;
       if (st.status === "done" && st.at) msg = (msg ? msg + " · " : "") + new Date(st.at).toLocaleTimeString();
       li.querySelector(".msg").innerHTML = linkify(msg);
     }
     const canComplete = !!s.attestation && !settled && !s.running;
+    document.querySelector('.step[data-step="settle"]').classList.toggle("ready", canComplete);
     $("complete-btn").hidden = !canComplete && !settled;
     $("complete-btn").disabled = !canComplete;
     $("complete-btn").textContent = settled ? "Completed" : "Complete";
