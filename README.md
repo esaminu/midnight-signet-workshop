@@ -112,9 +112,14 @@ so it generates DUST, the fee token, and waits for DUST. Every line must say `ok
 
 **7. MetaMask on Sepolia**
 
-You need **Sepolia USDC** ([faucet.circle.com](https://faucet.circle.com), pick Ethereum
-Sepolia) and some **Sepolia ETH** (any Sepolia faucet; 0.01 ETH is plenty: two sends plus the
-sweep's gas).
+You need **Sepolia USDC** and some **Sepolia ETH** (0.01 ETH is plenty: two sends plus the
+sweep's gas). Faucets:
+
+- USDC: [faucet.circle.com](https://faucet.circle.com), pick Ethereum Sepolia.
+- ETH: the [Google Cloud faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia)
+  needs only a Google account; the [Alchemy faucet](https://www.alchemy.com/faucets/ethereum-sepolia)
+  and the [MetaMask faucet](https://docs.metamask.io/developer-tools/faucet/) need a free
+  account on their side. Each is rate-limited, so get the ETH ahead of time.
 
 When `yarn doctor` is all `ok`, run the tests once to see what you are about to make pass:
 
@@ -427,7 +432,10 @@ link, Attest, Settle with the **Complete** button), and your private balance aft
 - Stagenet indexer: `https://indexer.stagenet.shielded.tools/api/v4/graphql`
   (websocket `wss://indexer.stagenet.shielded.tools/api/v4/graphql/ws`)
 - Stagenet node: `https://rpc.stagenet.shielded.tools`
-- Stagenet faucet: https://faucet.stagenet.shielded.tools
+- Stagenet faucet (NIGHT): https://faucet.stagenet.shielded.tools
+- Sepolia USDC faucet: https://faucet.circle.com
+- Sepolia ETH faucets: https://cloud.google.com/application/web3/faucet/ethereum/sepolia,
+  https://www.alchemy.com/faucets/ethereum-sepolia, https://docs.metamask.io/developer-tools/faucet/
 - Signet contract and MPC root key: `getSignetContractAddress(MidnightNetwork.Stagenet)`
   and `getMpcRootPublicKey(MidnightNetwork.Stagenet)` from
   [`@sig-net/midnight`](https://www.npmjs.com/package/@sig-net/midnight) 0.25.0
