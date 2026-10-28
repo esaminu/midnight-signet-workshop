@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your deposit</title>
+<style>
+@font-face { font-family: 'Archivo'; font-weight: 100 900; font-display: swap; src: url('/fonts/archivo-variable.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-weight: 400; font-display: swap; src: url('/fonts/ibm-plex-mono-400.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-weight: 600; font-display: swap; src: url('/fonts/ibm-plex-mono-600.woff2') format('woff2'); }
+/* Brand tokens, as in the deck (slides/index.html). Light theme only. */
+:root {
+  --font-sans: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --pampas-500: #F6F4F1; --clam-500: #CBB7AD; --clam-700: #B59C90;
+  --neutral-400: #786767; --neutral-600: #4C4646; --neutral-900: #201E1E;
+  --brand-950: #EAEEC9; --polar-500: #E4F8F7; --live: #27ED02;
+  --bg: var(--pampas-500); --ink: var(--neutral-600); --ink-soft: var(--neutral-400); --rule: var(--clam-500);
+  --midnight-bg: var(--neutral-600); --midnight-ink: var(--pampas-500);
+  --ethereum-bg: var(--polar-500); --ethereum-ink: var(--neutral-600);
+  --bad: #B3261E;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans); }
+body { padding: 28px 16px 64px; }
+main { max-width: 880px; margin: 0 auto; display: grid; gap: 20px; }
+.kicker { font: 600 13px/1 var(--font-mono); letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 10px; }
+h1 { font: 800 44px/1 var(--font-sans); letter-spacing: -1.4px; margin: 0 0 6px; }
+h2 { font: 800 24px/1.05 var(--font-sans); letter-spacing: -.6px; margin: 0 0 14px; }
+p { margin: 0 0 8px; line-height: 1.45; }
+.card { border: 2px solid var(--rule); border-radius: 12px; padding: 22px 24px; background: var(--bg); }
+.card.e { background: var(--ethereum-bg); border-color: var(--rule); color: var(--ethereum-ink); }
+.card.m { background: var(--midnight-bg); border-color: var(--midnight-bg); color: var(--midnight-ink); }
+.card.m .soft, .card.m .kicker { color: rgba(246,244,241,.7); }
+.soft { color: var(--ink-soft); }
+.mono { font-family: var(--font-mono); }
+.addr { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0 12px; }
+.addr code { font: 600 15px/1.3 var(--font-mono); word-break: break-all; }
+button { font: 600 14px/1 var(--font-mono); letter-spacing: .6px; text-transform: uppercase; border: 2px solid var(--ink); background: var(--ink); color: var(--bg); border-radius: 999px; padding: 12px 22px; cursor: pointer; }
+button.ghost { background: transparent; color: var(--ink); }
+button[disabled] { opacity: .4; cursor: default; }
+button.big { font-size: 17px; padding: 16px 30px; }
+.card.m button.ghost { color: var(--midnight-ink); border-color: var(--midnight-ink); }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: start; }
+.qr { width: 150px; height: 150px; background: #fff; border-radius: 10px; padding: 8px; }
+.qr svg { width: 100%; height: 100%; display: block; }
+.pill { display: inline-flex; align-items: center; gap: 8px; font: 600 12px/1 var(--font-mono); letter-spacing: 1px; text-transform: uppercase; padding: 8px 12px; border-radius: 999px; border: 2px solid var(--ink-soft); color: var(--ink); }
+.pill.ok { border-color: var(--live); } .pill.ok i { background: var(--live); }
+.pill i { width: 9px; height: 9px; border-radius: 50%; background: var(--clam-700); }
+.pill.live i { animation: pulse 1.6s infinite; background: var(--live); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(39,237,2,.45);} 70% { box-shadow: 0 0 0 9px rgba(39,237,2,0);} 100% { box-shadow: 0 0 0 0 rgba(39,237,2,0);} }
+/* The five steps, lane-coloured like the deck: Midnight dark, MPC outlined, Ethereum polar. */
+.steps { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 10px; }
+.step { display: grid; grid-template-columns: 44px 36px 1fr; gap: 14px; align-items: start; border: 2px solid var(--rule); border-radius: 12px; padding: 14px 16px; opacity: .55; transition: opacity .3s; }
+.step.running, .step.done, .step.error { opacity: 1; }
+.step .ico { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; border: 2px solid transparent; }
+.step .ico svg { width: 28px; height: 28px; --sw: 3; color: inherit; }
+.step.m .ico { background: var(--midnight-bg); color: var(--midnight-ink); }
+.step.s .ico { background: var(--bg); color: var(--ink); border-color: var(--ink-soft); }
+.step.e .ico { background: var(--ethereum-bg); color: var(--ethereum-ink); border-color: var(--rule); }
+.step .num { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--ink-soft); display: grid; place-items: center; font: 600 15px/1 var(--font-mono); margin-top: 4px; }
+.step.done .num { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.step.error .num { border-color: var(--bad); color: var(--bad); }
+.step .name { font: 800 22px/1 var(--font-sans); letter-spacing: -.5px; display: flex; gap: 10px; align-items: baseline; }
+.step .who { font: 600 12px/1 var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--ink-soft); }
+.step .msg { margin-top: 6px; font-size: 14px; line-height: 1.4; word-break: break-word; }
+.step .msg a { color: inherit; }
+.step.running .msg::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--live); margin-right: 8px; animation: pulse 1.6s infinite; }
+.step.error .msg { color: var(--bad); }
+.actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.balance { font: 800 56px/1 var(--font-sans); letter-spacing: -2px; margin: 10px 0 4px; }
+.balance small { font: 600 14px/1 var(--font-mono); letter-spacing: 1px; text-transform: uppercase; margin-left: 10px; opacity: .75; }
+.notice { border: 2px dashed var(--clam-700); border-radius: 12px; padding: 14px 18px; }
+.foot { font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+.foot code { font-family: var(--font-mono); word-break: break-all; }
+a { color: inherit; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-ask" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width:var(--sw,3)"><rect x="4" y="8" width="34" height="48" rx="6"/><path d="M12 21 H30 M12 30 H30 M12 39 H23"/><path d="M44 32 H60 M53 25 L60 32 L53 39"/></g></symbol>
+  <symbol id="i-sign" viewBox="0 0 64 64"><circle cx="32" cy="33" r="25" fill="none" stroke="currentColor" style="stroke-width:var(--sw,3)"/><g fill="currentColor"><circle cx="32" cy="8" r="4.2"/><circle cx="55.8" cy="25.3" r="4.2"/><circle cx="46.7" cy="53.2" r="4.2"/><circle cx="17.3" cy="53.2" r="4.2"/><circle cx="8.2" cy="25.3" r="4.2"/></g><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width:var(--sw,3)"><path d="M32 46 L25 31 L28 18 H36 L39 31 Z"/><path d="M32 46 V35"/></g><circle cx="32" cy="31.5" r="2.6" fill="currentColor"/></symbol>
+  <symbol id="i-broadcast" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width:var(--sw,3)"><rect x="20" y="15" width="40" height="34" rx="6"/><path d="M22 19 L40 33 L58 19"/><path d="M4 23 H13 M2 32 H13 M6 41 H13"/></g><circle cx="40" cy="33" r="5" fill="currentColor"/></symbol>
+  <symbol id="i-attest" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width:var(--sw,3)"><path d="M24.5 41 L19 59 L26 55.5 L30 61 L32.5 45"/><path d="M39.5 41 L45 59 L38 55.5 L34 61 L31.5 45"/><circle cx="32" cy="25" r="20"/><circle cx="32" cy="25" r="14.5" style="stroke-dasharray:2 5"/><path d="M25 25.5 L30 30.5 L39.5 20"/></g></symbol>
+  <symbol id="i-settle" viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="10" fill="none" stroke="currentColor" style="stroke-width:var(--sw,3)"/><path d="M19 33 L28 42 L45 23" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="stroke-width:var(--sw,3)"/></symbol>
+</svg>
+<main>
+  <header>
+    <p class="kicker">Sig.Network × Midnight · workshop</p>
+    <h1>Your deposit</h1>
+    <p class="soft">USDC in on Sepolia, private tokens out on Midnight. Five steps.</p>
+  </header>
+
+  <section id="nocontract" class="notice" hidden>
+    <b>No contract yet.</b> Run <code class="mono">yarn deploy</code>, then restart <code class="mono">yarn dev</code>.
+  </section>
+
+  <section class="card e">
+    <p class="kicker">Ethereum Sepolia</p>
+    <h2>1. Fund your deposit address</h2>
+    <div class="row">
+      <div>
+        <p>Send <b>Sepolia USDC</b> here from MetaMask (any amount, 1 USDC is plenty), plus about <b>0.001 Sepolia ETH</b> so the sweep can pay its own gas. Nobody holds this address's key: the MPC signs for it, only when your contract asks.</p>
+        <div class="addr"><code id="deposit">…</code><button class="ghost" id="copy" type="button">Copy</button></div>
+        <div class="actions">
+          <span class="pill" id="fundpill"><i></i><span id="fundtext">checking balance…</span></span>
+          <span class="soft mono" id="balances" style="font-size:13px"></span>
+        </div>
+      </div>
+      <div class="qr" id="qr" aria-label="QR code of the deposit address"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <p class="kicker">One request, five steps</p>
+    <h2>2. Deposit</h2>
+    <div class="actions">
+      <button class="big" id="deposit-btn" type="button" disabled>Deposit</button>
+      <button class="ghost" id="retry-btn" type="button" hidden>Retry</button>
+      <span class="soft" id="hint" style="font-size:14px"></span>
+    </div>
+    <ol class="steps">
+      <li class="step m" data-step="ask"><span class="ico"><svg><use href="#i-ask"/></svg></span><span class="num">1</span><div><div class="name">Ask <span class="who">your contract · Midnight</span></div><div class="msg"></div></div></li>
+      <li class="step s" data-step="sign"><span class="ico"><svg><use href="#i-sign"/></svg></span><span class="num">2</span><div><div class="name">Sign <span class="who">the MPC</span></div><div class="msg"></div></div></li>
+      <li class="step e" data-step="broadcast"><span class="ico"><svg><use href="#i-broadcast"/></svg></span><span class="num">3</span><div><div class="name">Broadcast <span class="who">this app · Sepolia</span></div><div class="msg"></div></div></li>
+      <li class="step s" data-step="attest"><span class="ico"><svg><use href="#i-attest"/></svg></span><span class="num">4</span><div><div class="name">Attest <span class="who">the MPC · ~18 min</span></div><div class="msg"></div></div></li>
+      <li class="step m" data-step="settle"><span class="ico"><svg><use href="#i-settle"/></svg></span><span class="num">5</span><div><div class="name">Settle <span class="who">your contract · Midnight</span></div><div class="msg"></div><div class="actions"><button id="complete-btn" type="button" hidden>Complete</button></div></div></li>
+    </ol>
+  </section>
+
+  <section class="card m">
+    <p class="kicker">Midnight · private</p>
+    <h2>3. Your private balance</h2>
+    <div class="balance"><span id="private">—</span><small>pool USDC</small></div>
+    <p class="soft" id="private-note">Appears after Settle. Only your wallet can see it.</p>
+  </section>
+
+  <footer class="foot">
+    <div>Contract: <code id="contract">…</code></div>
+    <div>Pool account (path "vault"): <code id="vault">…</code></div>
+    <div id="links"></div>
+  </footer>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const linkify = (s) => esc(s).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  const post = (path) => fetch(path, { method: "POST" }).then(async (r) => { if (!r.ok) alert((await r.json()).error || r.statusText); });
+
+  let state = null;
+  function render(s) {
+    state = s;
+    $("nocontract").hidden = !!s.contractAddress;
+    $("deposit").textContent = s.depositAddress || "run yarn deploy";
+    $("contract").textContent = s.contractAddress || "—";
+    $("vault").textContent = s.vaultEvmAddress || "—";
+    $("qr").innerHTML = s.qrSvg || "";
+    if (s.funding) {
+      $("fundpill").className = "pill " + (s.funding.ready ? "ok" : "");
+      $("fundtext").textContent = s.funding.ready ? "ready to deposit" : (Number(s.funding.usdc) > 0 ? "needs ETH for gas" : "waiting for USDC");
+      $("balances").textContent = `${s.funding.usdc} USDC · ${s.funding.eth} ETH (gas needs ${s.funding.gasNeeded} ETH)`;
+    }
+    const settled = !!s.completeTxId, broadcast = !!s.sepoliaTxHash;
+    $("deposit-btn").disabled = !s.contractAddress || !!s.running || broadcast || !(s.funding && s.funding.ready) || !s.walletReady;
+    $("deposit-btn").textContent = broadcast ? "Deposited" : s.running ? "Working…" : "Deposit";
+    $("retry-btn").hidden = !(s.error && !s.running && !settled);
+    $("hint").textContent = !s.walletReady ? (s.walletError ? "wallet: " + s.walletError : "opening your Midnight wallet…")
+      : s.running ? "" : s.error ? s.error : !broadcast && s.funding && !s.funding.ready ? "fund the deposit address first" : "";
+    for (const li of document.querySelectorAll(".step")) {
+      const st = s.steps[li.dataset.step];
+      li.className = li.className.replace(/\b(todo|running|done|error)\b/g, "").trim() + " " + st.status;
+      let msg = st.message || "";
+      if (st.status === "error" && s.error) msg = s.error;
+      if (st.status === "done" && st.at) msg = (msg ? msg + " · " : "") + new Date(st.at).toLocaleTimeString();
+      li.querySelector(".msg").innerHTML = linkify(msg);
+    }
+    const canComplete = !!s.attestation && !settled && !s.running;
+    $("complete-btn").hidden = !canComplete && !settled;
+    $("complete-btn").disabled = !canComplete;
+    $("complete-btn").textContent = settled ? "Completed" : "Complete";
+    $("private").textContent = s.privateBalance ?? (s.walletReady ? "0" : "—");
+    $("private-note").textContent = settled ? "Minted by completeDeposit, after your circuit verified the MPC's attestation." : "Appears after Settle. Only your wallet can see it.";
+    const links = [];
+    if (s.requestId) links.push(`<a href="https://sig-net.github.io/explorer/midnight/explorer?networkId=stagenet&requestId=${esc(s.requestId)}" target="_blank" rel="noopener">request in the Sig.Network explorer</a>`);
+    if (s.sepoliaTxHash) links.push(`<a href="https://sepolia.etherscan.io/tx/${esc(s.sepoliaTxHash)}" target="_blank" rel="noopener">sweep on Etherscan</a>`);
+    if (s.vaultEvmAddress) links.push(`<a href="https://sepolia.etherscan.io/address/${esc(s.vaultEvmAddress)}#tokentxns" target="_blank" rel="noopener">pool account on Etherscan</a>`);
+    $("links").innerHTML = links.join(" · ");
+  }
+
+  $("copy").onclick = () => { if (state && state.depositAddress) navigator.clipboard.writeText(state.depositAddress).then(() => { $("copy").textContent = "Copied"; setTimeout(() => ($("copy").textContent = "Copy"), 1200); }); };
+  $("deposit-btn").onclick = () => post("/api/deposit");
+  $("complete-btn").onclick = () => post("/api/complete");
+  $("retry-btn").onclick = () => post("/api/retry");
+
+  const connect = () => {
+    const es = new EventSource("/api/events");
+    es.onmessage = (e) => render(JSON.parse(e.data));
+    es.onerror = () => { es.close(); setTimeout(connect, 2000); };
+  };
+  connect();
+})();
+</script>
+</body>
+</html>

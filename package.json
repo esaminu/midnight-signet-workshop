@@ -1,0 +1,55 @@
+{
+  "name": "midnight-signet-workshop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Code-along workshop: a mini privacy pool on Midnight stagenet that sweeps Sepolia USDC through the Sig.Network MPC and mints private tokens.",
+  "packageManager": "yarn@4.17.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "doctor": "tsx --env-file-if-exists=.env scripts/doctor.ts",
+    "compile": "sh scripts/compile.sh",
+    "compile:fast": "sh scripts/compile.sh --skip-zk",
+    "test": "sh scripts/test.sh",
+    "typecheck": "OUT=contract/managed-test sh scripts/compile.sh --skip-zk && tsc -p tsconfig.json",
+    "deploy": "tsx --env-file-if-exists=.env scripts/deploy.ts",
+    "dev": "tsx --env-file-if-exists=.env scripts/dev.ts",
+    "deposit": "tsx --env-file-if-exists=.env scripts/deposit.ts",
+    "settle": "tsx --env-file-if-exists=.env scripts/settle.ts",
+    "finish": "tsx scripts/finish.ts"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-runtime": "0.18.0-rc.1",
+    "@midnight-ntwrk/midnight-js": "5.0.0-beta.6",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "5.0.0-beta.6",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "5.0.0-beta.6",
+    "@midnight-ntwrk/midnight-js-level-private-state-provider": "5.0.0-beta.6",
+    "@midnight-ntwrk/midnight-js-node-zk-config-provider": "5.0.0-beta.6",
+    "@midnightntwrk/ledger-v9": "1.0.0-rc.3",
+    "@midnightntwrk/wallet-sdk-abstractions": "3.0.0-beta.0",
+    "@midnightntwrk/wallet-sdk-dust-wallet": "5.0.0-beta.2",
+    "@midnightntwrk/wallet-sdk-facade": "5.0.0-beta.2",
+    "@midnightntwrk/wallet-sdk-shielded": "4.0.0-beta.2",
+    "@midnightntwrk/wallet-sdk-unshielded-wallet": "4.0.0-beta.2",
+    "@sig-net/midnight": "0.25.0",
+    "@sig-net/midnight-contract": "0.25.0",
+    "@sig-net/midnight-contract-deploy": "0.25.0",
+    "ethers": "^6.17.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "@types/qrcode": "^1.5.5",
+    "tsx": "^4.23.1",
+    "typescript": "6.0.3",
+    "vite": "8.1.4",
+    "vitest": "^5.0.0"
+  },
+  "resolutions": {
+    "@midnightntwrk/ledger-v9": "1.0.0-rc.3",
+    "@midnightntwrk/onchain-runtime-v4": "4.0.0-rc.3",
+    "@midnightntwrk/wallet-sdk-address-format": "4.0.0-beta.2"
+  }
+}

@@ -1,0 +1,11 @@
+# The proof server: makes the zero-knowledge proofs for your transactions,
+# locally, so your inputs never leave your machine.
+#   docker compose up -d
+# It must match the stagenet ledger version. Do not change the tag.
+services:
+  proof-server:
+    container_name: midnight-proof-server
+    image: midnightntwrk/proof-server:9.0.0-rc.5_experimental
+    command: ["midnight-proof-server -v"]
+    ports:
+      - "127.0.0.1:6300:6300"

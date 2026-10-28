@@ -1,0 +1,147 @@
+pragma language_version >= 0.25;
+
+import CompactStandardLibrary;
+import "@sig-net/midnight/src/Signet";
+
+export ledger bidirectionalDepositMap: SignBidirectionalEventMapV1<EvmType2TxParams<2, 0, 0>, 34>;
+
+sealed ledger signetSigner: SignetSigner;
+
+export ledger mpcResponseKey: Secp256k1Point;
+
+export ledger initialised: Boolean;
+
+export ledger vaultEvmAddress: Bytes<20>;
+
+sealed ledger deployer: Bytes<32>;
+
+export ledger globalLastSeen: Uint<64>;
+export ledger heightAtRequest: Map<RequestId, Uint<64>>;
+
+witness callerSecretKey(): Bytes<32>;
+
+export pure circuit userCommitment(sk: Bytes<32>): Bytes<32> {
+  return upgradeFromTransient(transientHash<Vector<2, Bytes<32>>>([
+    sk,
+    pad(32, "vault:user:")
+  ]));
+}
+
+export pure circuit vaultTokenDomainSeparator(erc20Address: Bytes<20>): Bytes<32> {
+  return upgradeFromTransient(transientHash<Vector<2, Bytes<32>>>([
+    pad(32, "erc20:vault:"),
+    erc20Address as Field as Bytes<32>
+  ]));
+}
+
+export pure circuit usdc(): Bytes<20> {
+  return Bytes[0x1c, 0x7d, 0x4b, 0x19, 0x6c, 0xb0, 0xc7, 0xb0, 0x1d, 0x74,
+               0x3f, 0xbc, 0x61, 0x16, 0xa9, 0x02, 0x37, 0x9c, 0x72, 0x38];
+}
+
+export pure circuit vaultOutputSchema(): Bytes<34> {
+  return "[{\"name\":\"success\",\"type\":\"bool\"}]" as Bytes<34>;
+}
+
+struct VaultResponse {
+  success: Boolean;
+}
+
+export pure circuit mpcKeyVersion(): Uint<8> {
+  return 1;
+}
+
+circuit requireInitialised(): [] {
+  assert(initialised, "Not initialised");
+}
+
+constructor(deployerCommitment: Bytes<32>, signetContract: SignetSigner) {
+  deployer = disclose(deployerCommitment);
+  signetSigner = disclose(signetContract);
+}
+
+export circuit initialise(vaultEvm: Bytes<20>, responseKey: Secp256k1Point): [] {
+  assert(!initialised, "Already initialised");
+  assert(userCommitment(callerSecretKey()) == deployer, "Not the deployer");
+  initialised = true;
+  vaultEvmAddress = disclose(vaultEvm);
+  mpcResponseKey = disclose(responseKey);
+}
+
+pure circuit sweepTxParams(calldata: EvmCalldata<2>, evmNonce: Uint<64>, maxFeePerGas: Uint<128>): EvmType2TxParams<2, 0, 0> {
+  return EvmType2TxParams<2, 0, 0> {
+    chainId: 11155111 as Uint<64>,
+    nonce: evmNonce,
+    maxPriorityFeePerGas: 1000000000 as Uint<128>,
+    maxFeePerGas: maxFeePerGas,
+    gasLimit: 200000 as Uint<64>,
+    to: usdc(),
+    value: 0 as Uint<128>,
+    calldata: some<EvmCalldata<2>>(calldata),
+    accessListEntryCount: 0,
+    accessList: []
+  };
+}
+
+export circuit sendDeposit(amount: Uint<128>, evmNonce: Uint<64>, maxFeePerGas: Uint<128>): RequestId {
+  requireInitialised();
+  assert(amount > 0 as Uint<128>, "Amount must be positive");
+  assert(amount <= 18446744073709551615 as Uint<128>, "Amount exceeds Uint<64> max");
+  assert(maxFeePerGas >= 1000000000 as Uint<128>, "maxFeePerGas is below the 1 gwei tip");
+
+  // ---- TODO(part 1): Ask. README section 1 ----------------------------------------
+  const calldata = EvmCalldata<2> {
+    selector: Bytes[0xa9, 0x05, 0x9c, 0xbb],
+    noWords: 2 as Uint<16>,
+    words: [evmAddressAbiWord(vaultEvmAddress), numericAbiWord(amount)]
+  };
+  const request = constructSignBidirectionalEventV1<EvmType2TxParams<2, 0, 0>, 34>(
+    mpcKeyVersion(), kernel.self(), userCommitment(callerSecretKey()),
+    MPCSignatureAlgorithm.ecdsa, TxParamType.evmType2, sweepTxParams(calldata, evmNonce, maxFeePerGas),
+    ethereumCaip2Id(), MPCDestination.unused, pad(64, ""), vaultOutputSchema()
+  );
+  const requestId = disclose(calculateEvmType2RequestIdV1<2, 0, 0, 34>(request));
+  assert(!bidirectionalDepositMap.member(requestId), "Request already sent");
+  bidirectionalDepositMap.insert(requestId, disclose(request));
+  heightAtRequest.insert(requestId, globalLastSeen);
+  signetSigner.signBidirectional(
+    requestId,
+    constructSignBidirectionalEventNotificationV1(kernel.self(), 1 as Uint<8>, [0, 0, 0, 0] as Vector<4, Uint<8>>)
+  );
+  return requestId;
+  // ---- end part 1 -----------------------------------------------------------------
+}
+
+circuit settleRequest(response: RespondBidirectionalEventV1): SignBidirectionalEventV1<EvmType2TxParams<2, 0, 0>, 34, 0> {
+  const requestId = disclose(response.requestId);
+  const height = disclose(response.blockHeight);
+  assert(bidirectionalDepositMap.member(requestId), "Request not found");
+  const request = bidirectionalDepositMap.lookup(requestId);
+  assert(request.path == userCommitment(callerSecretKey()), "Not the depositor");
+  assert(height > heightAtRequest.lookup(requestId), "Stale attestation");
+  if (height > globalLastSeen) {
+    globalLastSeen = height;
+  }
+  bidirectionalDepositMap.remove(requestId);
+  heightAtRequest.remove(requestId);
+  return request;
+}
+
+pure circuit depositAmount(request: SignBidirectionalEventV1<EvmType2TxParams<2, 0, 0>, 34, 0>): Uint<64> {
+  return abiWordToUint128(request.txParams.calldata.value.words[1]) as Uint<64>;
+}
+
+export circuit completeDeposit(response: RespondBidirectionalEventV1, serializedOutput: Bytes<1>, mintNonce: Bytes<32>): [] {
+  requireInitialised();
+  // ---- TODO(part 2): Settle. README section 2 -------------------------------------
+  assert(verifyRespondBidirectionalAttestationV1(disclose(response), mpcResponseKey), "Invalid attestation signature");
+  const request = settleRequest(response);
+  if (disclose(response.outputKind) == OutputKind.executed) {
+    assert(verifyAttestedOutputV1<1>(disclose(serializedOutput), response.serializedOutputLength, response.outputHash),
+           "Output does not match the attestation");
+    assert(deserialize<VaultResponse, 1>(serializedOutput).success, "Remote transfer failed");
+    mintShieldedToken(vaultTokenDomainSeparator(usdc()), depositAmount(request), disclose(mintNonce),
+                      left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()));
+  }
+  // ---- end part 2 -----------------------------------------------------------------
+}

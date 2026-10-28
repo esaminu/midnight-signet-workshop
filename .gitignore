@@ -1,0 +1,14 @@
+node_modules/
+.yarn/
+!.yarn/releases
+contract/managed/
+contract/managed-test/
+.env
+state.json
+midnight-level-db/
+*.log
+.dry-run/
+.finish-backup/
+.wallet-cache/
+.vercel/
+HANDS_ON_TASK.md
